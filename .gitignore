@@ -1,0 +1,27 @@
+ARCHITECTURE.md
+CLAUDE.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+*.local
+.venv/
+# IDE
+.vscode/
+.idea/
+
+# Docker
+docker/grafana/provisioning/datasources/
+
+docs/_build/

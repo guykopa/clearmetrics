@@ -1,0 +1,13 @@
+[flake8]
+max-line-length = 88
+exclude =
+    .git,
+    __pycache__,
+    .pytest_cache,
+    .mypy_cache,
+    htmlcov,
+    docs,
+    dashboard
+ignore = E203, W503
+per-file-ignores =
+    tests/*: S101

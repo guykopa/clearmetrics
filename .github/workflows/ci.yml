@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: clearmetrics_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U user -d clearmetrics_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://user:password@localhost:5432/clearmetrics_test
+      JWT_SECRET_KEY: ci-secret-key-minimum-32-bytes-long
+      JWT_ALGORITHM: HS256
+      LOG_LEVEL: DEBUG
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Lint — flake8
+        run: flake8 clearmetrics/
+
+      - name: Type check — mypy
+        run: mypy clearmetrics/
+
+      - name: Unit tests
+        run: pytest tests/unit/ --cov=clearmetrics --cov-report=xml --cov-fail-under=90
+
+      - name: Integration tests
+        run: pytest tests/integration/ tests/non_regression/ --cov=clearmetrics --cov-append --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false

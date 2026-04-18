@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>clearmetrics — Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
+    header span { font-size: 0.85rem; color: #94a3b8; }
+
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 64px);
+    }
+
+    .login-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 360px;
+    }
+
+    .login-card h2 { margin-bottom: 1.5rem; font-size: 1.1rem; color: #f1f5f9; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem; }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.65rem;
+      background: #0ea5e9;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #38bdf8; }
+    .btn-sm {
+      width: auto;
+      padding: 0.4rem 0.9rem;
+      font-size: 0.8rem;
+      margin-top: 0;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #334155;
+      color: #94a3b8;
+    }
+    .btn-outline:hover { border-color: #38bdf8; color: #38bdf8; background: transparent; }
+
+    #error-msg { color: #f87171; font-size: 0.8rem; margin-top: 0.75rem; display: none; }
+
+    #dashboard { display: none; }
+
+    .toolbar {
+      padding: 1rem 2rem;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .toolbar label { font-size: 0.8rem; color: #94a3b8; }
+    .toolbar input, .toolbar select {
+      padding: 0.4rem 0.6rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #e2e8f0;
+      font-size: 0.85rem;
+    }
+
+    .toolbar .spacer { flex: 1; }
+
+    .main { padding: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .card h3 { font-size: 0.95rem; color: #94a3b8; margin-bottom: 1rem; font-weight: 500; }
+    .card.full { grid-column: 1 / -1; }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; grid-column: 1 / -1; }
+
+    .kpi {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .kpi .label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+    .kpi .value { font-size: 2rem; font-weight: 700; color: #38bdf8; margin: 0.25rem 0; }
+    .kpi .sub { font-size: 0.8rem; color: #94a3b8; }
+
+    canvas { max-height: 280px; }
+
+    #status-bar {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>clearmetrics</h1>
+  <span id="user-info"></span>
+</header>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-card">
+    <h2>Sign in</h2>
+    <div class="form-group">
+      <label>User ID</label>
+      <input id="user-id" type="text" value="usr-001" placeholder="usr-001" />
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="role">
+        <option value="admin">Admin</option>
+        <option value="analyst">Analyst</option>
+        <option value="viewer">Viewer</option>
+      </select>
+    </div>
+    <button class="btn" onclick="login()">Sign in</button>
+    <p id="error-msg"></p>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <div class="toolbar">
+    <label>From</label>
+    <input type="date" id="filter-from" />
+    <label>To</label>
+    <input type="date" id="filter-to" />
+    <label>Account</label>
+    <input type="text" id="filter-account" placeholder="acc-001" />
+    <button class="btn btn-sm" onclick="loadData()">Apply</button>
+    <div class="spacer"></div>
+    <button class="btn btn-sm btn-outline" onclick="exportCSV()">Export CSV</button>
+    <button class="btn btn-sm btn-outline" onclick="logout()">Sign out</button>
+  </div>
+
+  <div class="main">
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="label">Total Metrics</div>
+        <div class="value" id="kpi-total">—</div>
+        <div class="sub">records loaded</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Total Value</div>
+        <div class="value" id="kpi-value">—</div>
+        <div class="sub">sum across all metrics</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Unique Names</div>
+        <div class="value" id="kpi-names">—</div>
+        <div class="sub">distinct metric types</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Value by Metric</h3>
+      <canvas id="chart-bar"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Distribution</h3>
+      <canvas id="chart-doughnut"></canvas>
+    </div>
+
+    <div class="card full">
+      <h3>Timeline</h3>
+      <canvas id="chart-line"></canvas>
+    </div>
+  </div>
+</div>
+
+<div id="status-bar">Ready</div>
+
+<script src="js/charts.js"></script>
+</body>
+</html>
