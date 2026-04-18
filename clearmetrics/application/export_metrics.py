@@ -19,7 +19,9 @@ class ExportMetricsUseCase:
     def execute(self, filters: dict[str, Any], user_role: str) -> list[Metric]:
         """Return metrics matching filters for an authorized user."""
         if user_role not in _ALLOWED_ROLES:
-            raise PermissionError(f"Role '{user_role}' is not allowed to export metrics.")
+            raise PermissionError(
+                f"Role '{user_role}' is not allowed to export metrics."
+            )
         raw_records = self._source.fetch_metrics(filters)
         metrics = []
         for record in raw_records:

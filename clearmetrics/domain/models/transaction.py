@@ -44,6 +44,10 @@ class Transaction:
         if self.amount <= 0:
             raise InvalidAmountError(f"Amount must be positive, got {self.amount}.")
         if self.currency not in _ISO_4217_CODES:
-            raise InvalidCurrencyError(f"Currency '{self.currency}' is not a valid ISO 4217 code.")
+            raise InvalidCurrencyError(
+                f"Currency '{self.currency}' is not a valid ISO 4217 code."
+            )
         if self.source not in _VALID_SOURCES:
-            raise ValueError(f"Source '{self.source}' is not valid. Must be one of {_VALID_SOURCES}.")
+            raise ValueError(
+                f"Source '{self.source}' is not valid. Must be one of {_VALID_SOURCES}."
+            )

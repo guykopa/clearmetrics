@@ -5,7 +5,9 @@ from clearmetrics.ports.outbound.i_token_verifier_port import ITokenVerifierPort
 class AuthService:
     """Handles token generation and verification via injected ports."""
 
-    def __init__(self, generator: ITokenGeneratorPort, verifier: ITokenVerifierPort) -> None:
+    def __init__(
+        self, generator: ITokenGeneratorPort, verifier: ITokenVerifierPort
+    ) -> None:
         self._generator = generator
         self._verifier = verifier
 

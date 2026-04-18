@@ -2,7 +2,9 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from clearmetrics.adapters.outbound.postgresql_models import TransactionRow
-from clearmetrics.ports.outbound.i_transaction_storage_port import ITransactionStoragePort
+from clearmetrics.ports.outbound.i_transaction_storage_port import (
+    ITransactionStoragePort,
+)
 
 
 class PostgreSQLTransactionStorageAdapter(ITransactionStoragePort):

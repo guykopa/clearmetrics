@@ -6,9 +6,6 @@ from pydantic import BaseModel
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from clearmetrics.domain.services.auth_service import AuthService
-from clearmetrics.application.ingest_data import IngestDataUseCase
-from clearmetrics.application.export_metrics import ExportMetricsUseCase
-from clearmetrics.application.validate_data import ValidateDataUseCase
 
 
 security = HTTPBearer()
@@ -46,7 +43,10 @@ def create_app(
         try:
             return auth_service.verify_token(credentials.credentials)
         except ValueError:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token",
+            )
 
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -54,7 +54,9 @@ def create_app(
 
     @app.post("/auth/token", response_model=TokenResponse)
     def get_token(request: TokenRequest) -> TokenResponse:
-        token = auth_service.generate_token(user_id=request.user_id, role=request.role)
+        token = auth_service.generate_token(
+            user_id=request.user_id, role=request.role
+        )
         return TokenResponse(access_token=token)
 
     @app.post("/api/transactions/ingest")
@@ -63,17 +65,24 @@ def create_app(
         user: dict[str, str] = Depends(get_current_user),
     ) -> list[dict[str, Any]]:
         try:
-            transactions = ingest_use_case.execute(filters=filters, user_role=user["role"])
+            transactions = ingest_use_case.execute(
+                filters=filters, user_role=user["role"]
+            )
             return [
                 {
-                    "id": t.id, "amount": t.amount, "currency": t.currency,
-                    "account_id": t.account_id, "timestamp": t.timestamp.isoformat(),
+                    "id": t.id,
+                    "amount": t.amount,
+                    "currency": t.currency,
+                    "account_id": t.account_id,
+                    "timestamp": t.timestamp.isoformat(),
                     "source": t.source,
                 }
                 for t in transactions
             ]
         except PermissionError as exc:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)
+            )
 
     @app.get("/api/metrics")
     def export_metrics(
@@ -83,13 +92,18 @@ def create_app(
             metrics = export_use_case.execute(filters={}, user_role=user["role"])
             return [
                 {
-                    "name": m.name, "value": m.value, "unit": m.unit,
-                    "timestamp": m.timestamp.isoformat(), "dimensions": m.dimensions,
+                    "name": m.name,
+                    "value": m.value,
+                    "unit": m.unit,
+                    "timestamp": m.timestamp.isoformat(),
+                    "dimensions": m.dimensions,
                 }
                 for m in metrics
             ]
         except PermissionError as exc:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)
+            )
 
     @app.post("/api/transactions/validate")
     def validate_transactions(
@@ -97,9 +111,14 @@ def create_app(
         user: dict[str, str] = Depends(get_current_user),
     ) -> list[dict[str, Any]]:
         if validate_use_case is None:
-            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Validation not configured")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Validation not configured",
+            )
         try:
-            results = validate_use_case.execute(records=body.get("records", []), user_role=user["role"])
+            results = validate_use_case.execute(
+                records=body.get("records", []), user_role=user["role"]
+            )
             return [
                 {
                     "rule_name": r.rule_name,
@@ -110,6 +129,8 @@ def create_app(
                 for r in results
             ]
         except PermissionError as exc:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)
+            )
 
     return app

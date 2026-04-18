@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from clearmetrics.domain.models.quality_result import QualityResult
 
 
 class IQualityRulePort(ABC):
     """Abstract port for a single data quality validation rule."""
 
     @abstractmethod
-    def validate(self, records: list[dict[str, Any]]) -> "QualityResult":  # type: ignore[name-defined]
+    def validate(self, records: list[dict[str, Any]]) -> "QualityResult":
         """Validate records and return a QualityResult."""
 
     @property

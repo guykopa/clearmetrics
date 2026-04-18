@@ -3,16 +3,22 @@ from typing import Any
 
 from clearmetrics.domain.exceptions import DomainException
 from clearmetrics.domain.models.transaction import Transaction
-from clearmetrics.ports.outbound.i_transaction_source_port import ITransactionSourcePort
-from clearmetrics.ports.outbound.i_transaction_storage_port import ITransactionStoragePort
+from clearmetrics.ports.outbound.i_transaction_source_port import (
+    ITransactionSourcePort,
+)
+from clearmetrics.ports.outbound.i_transaction_storage_port import (
+    ITransactionStoragePort,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class ETLService:
-    """Extracts raw transaction records, transforms them to domain objects, and persists them."""
+    """Extracts, transforms, and persists transaction records."""
 
-    def __init__(self, source: ITransactionSourcePort, storage: ITransactionStoragePort) -> None:
+    def __init__(
+        self, source: ITransactionSourcePort, storage: ITransactionStoragePort
+    ) -> None:
         self._source = source
         self._storage = storage
 
