@@ -13,4 +13,5 @@ class JWTTokenGeneratorAdapter(ITokenGeneratorPort):
     def generate_token(self, user_id: str, role: str) -> str:
         """Generate a signed JWT containing user_id and role."""
         payload = {"user_id": user_id, "role": role}
-        return jwt.encode(payload, self._secret, algorithm=self._algorithm)
+        token = jwt.encode(payload, self._secret, algorithm=self._algorithm)
+        return token if isinstance(token, str) else token.decode("utf-8")

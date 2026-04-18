@@ -23,8 +23,9 @@ class CSVTransactionSourceAdapter(ITransactionSourcePort):
             if key in df.columns:
                 df = df[df[key] == value]
 
-        records = df.to_dict(orient="records")
+        raw = df.to_dict(orient="records")
         return [
-            {**record, "timestamp": record["timestamp"].to_pydatetime()}
-            for record in records
+            {str(k): v for k, v in record.items()}
+            | {"timestamp": record["timestamp"].to_pydatetime()}
+            for record in raw
         ]
